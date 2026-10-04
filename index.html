@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Portfolio filmowe — reżyseria, montaż, produkcja wideo."
+    />
+    <title>Portfolio | Filmowiec</title>
+    <link rel="stylesheet" href="styles.css?v=20261004l" />
+  </head>
+  <body>
+    <a class="page-top" id="top" href="#top" aria-hidden="true"></a>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <a class="logo" href="#top">MIH</a>
+      <button
+        class="nav-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="site-nav"
+      >
+        <span class="nav-toggle__bar"></span>
+        <span class="nav-toggle__bar"></span>
+      </button>
+      <nav class="site-nav" id="site-nav">
+        <a href="#o-mnie">O mnie</a>
+        <a href="#realizacje">Realizacje</a>
+        <a href="#kontakt">Kontakt</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" aria-label="Strona główna">
+        <div class="hero__media" aria-hidden="true">
+          <video
+            class="hero__video"
+            autoplay
+            muted
+            loop
+            playsinline
+            preload="metadata"
+            poster="images/hero-poster.jpg"
+          >
+            <source src="videos/hero.mp4" type="video/mp4" />
+          </video>
+        </div>
+        <div class="hero__display" id="hero-display" aria-hidden="true">
+          <p class="hero__line" data-depth="14">
+            <span class="hero__word" data-base-fill="0">Your</span>
+          </p>
+          <p class="hero__line hero__line--shift-1" data-depth="26">
+            <span class="hero__word" data-base-fill="1">idea,</span>
+          </p>
+          <p class="hero__line hero__line--shift-2" data-depth="18">
+            <span class="hero__word" data-base-fill="0">my</span>
+          </p>
+          <p class="hero__line hero__line--shift-3" data-depth="32">
+            <span class="hero__word" data-base-fill="1">work</span>
+          </p>
+        </div>
+        <h1 class="visually-hidden">Your idea, my work</h1>
+        <div class="hero__logos" aria-label="Marki i partnerzy">
+          <div class="hero__logos-viewport">
+            <div class="hero__logos-track" id="hero-logos-track">
+              <ul class="hero__logos-row">
+                <li class="hero__logo-item" data-logo="bitter">
+                  <img
+                    class="hero__logo-img"
+                    src="logos/Bitter.png"
+                    alt="Bitter"
+                    width="160"
+                    height="40"
+                  />
+                </li>
+                <li class="hero__logo-item" data-logo="dss">
+                  <img
+                    class="hero__logo-img"
+                    src="logos/dss.png"
+                    alt="DSS"
+                    width="160"
+                    height="40"
+                  />
+                </li>
+                <li class="hero__logo-item" data-logo="ken">
+                  <img
+                    class="hero__logo-img"
+                    src="logos/ken.png"
+                    alt="Ken"
+                    width="160"
+                    height="40"
+                  />
+                </li>
+                <li class="hero__logo-item" data-logo="univ">
+                  <img
+                    class="hero__logo-img"
+                    src="logos/univ.png"
+                    alt="Univ"
+                    width="160"
+                    height="40"
+                  />
+                </li>
+                <li class="hero__logo-item" data-logo="newonce">
+                  <img
+                    class="hero__logo-img"
+                    src="logos/newonce.png"
+                    alt="Newonce"
+                    width="160"
+                    height="40"
+                  />
+                </li>
+                <li class="hero__logo-item" data-logo="smeg">
+                  <img
+                    class="hero__logo-img"
+                    src="logos/smeg.png"
+                    alt="Smeg"
+                    width="160"
+                    height="40"
+                  />
+                </li>
+                <li class="hero__logo-item" data-logo="sony">
+                  <img
+                    class="hero__logo-img"
+                    src="logos/Sony.png"
+                    alt="Sony"
+                    width="160"
+                    height="40"
+                  />
+                </li>
+                <li class="hero__logo-item" data-logo="media">
+                  <img
+                    class="hero__logo-img"
+                    src="logos/Media.png"
+                    alt="Media"
+                    width="160"
+                    height="40"
+                  />
+                </li>
+                <li class="hero__logo-item" data-logo="matchy">
+                  <img
+                    class="hero__logo-img"
+                    src="logos/matchy.png"
+                    alt="Matchy"
+                    width="160"
+                    height="40"
+                  />
+                </li>
+                <li class="hero__logo-item" data-logo="2115">
+                  <img
+                    class="hero__logo-img"
+                    src="logos/2115.png"
+                    alt="2115"
+                    width="160"
+                    height="40"
+                  />
+                </li>
+              </ul>
+              <ul class="hero__logos-row" aria-hidden="true">
+                <li class="hero__logo-item" data-logo="bitter">
+                  <img
+                    class="hero__logo-img"
+                    src="logos/Bitter.png"
+                    alt=""
+                    width="160"
+                    height="40"
+                  />
+                </li>
+                <li class="hero__logo-item" data-logo="dss">
+                  <img
+                    class="hero__logo-img"
+                    src="logos/dss.png"
+                    alt=""
+                    width="160"
+                    height="40"
+                  />
+                </li>
+                <li class="hero__logo-item" data-logo="ken">
+                  <img
+                    class="hero__logo-img"
+                    src="logos/ken.png"
+                    alt=""
+                    width="160"
+                    height="40"
+                  />
+                </li>
+                <li class="hero__logo-item" data-logo="univ">
+                  <img
+                    class="hero__logo-img"
+                    src="logos/univ.png"
+                    alt=""
+                    width="160"
+                    height="40"
+                  />
+                </li>
+                <li class="hero__logo-item" data-logo="newonce">
+                  <img
+                    class="hero__logo-img"
+                    src="logos/newonce.png"
+                    alt=""
+                    width="160"
+                    height="40"
+                  />
+                </li>
+                <li class="hero__logo-item" data-logo="smeg">
+                  <img
+                    class="hero__logo-img"
+                    src="logos/smeg.png"
+                    alt=""
+                    width="160"
+                    height="40"
+                  />
+                </li>
+                <li class="hero__logo-item" data-logo="sony">
+                  <img
+                    class="hero__logo-img"
+                    src="logos/Sony.png"
+                    alt=""
+                    width="160"
+                    height="40"
+                  />
+                </li>
+                <li class="hero__logo-item" data-logo="media">
+                  <img
+                    class="hero__logo-img"
+                    src="logos/Media.png"
+                    alt=""
+                    width="160"
+                    height="40"
+                  />
+                </li>
+                <li class="hero__logo-item" data-logo="matchy">
+                  <img
+                    class="hero__logo-img"
+                    src="logos/matchy.png"
+                    alt=""
+                    width="160"
+                    height="40"
+                  />
+                </li>
+                <li class="hero__logo-item" data-logo="2115">
+                  <img
+                    class="hero__logo-img"
+                    src="logos/2115.png"
+                    alt=""
+                    width="160"
+                    height="40"
+                  />
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section--dark" id="o-mnie">
+        <div class="container about">
+          <div class="about__image">
+            <div class="about__frame">
+              <span class="about__initials" aria-hidden="true">MIH</span>
+            </div>
+          </div>
+          <div class="about__text">
+            <span class="section-head__label">O mnie</span>
+            <h2 class="section-head__title">Michał Szymaniak</h2>
+            <p>
+              Najlepsze rzeczy powstają wtedy, gdy gramy do jednej bramki.
+              Współpracuję z markami, twórcami i agencjami na partnerskich
+              zasadach – bez barier, w stałym dialogu i w atmosferze, w której
+              każdy ma realny wpływ na efekt końcowy.
+            </p>
+            <p>
+              Ty masz pewność, że wszystko jest w dobrych rękach, a ja dbam o
+              to, by materiał był gotowy dokładnie wtedy, kiedy go potrzebujesz.
+            </p>
+            <ul class="about__stats">
+              <li>
+                <strong data-count="7">0</strong>
+                <span>lat<br />doświadczenia</span>
+              </li>
+              <li>
+                <strong data-count="250" data-count-prefix=">">&gt;0</strong>
+                <span>zrealizowanych<br />projektów</span>
+              </li>
+              <li>
+                <strong data-count="30" data-count-prefix=">">&gt;0</strong>
+                <span>zadowolonych<br />klientów</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="realizacje">
+        <div class="container">
+          <div class="section-head">
+            <span class="section-head__label">Portfolio</span>
+            <h2 class="section-head__title">Realizacje</h2>
+          </div>
+
+          <div class="filters" role="tablist" aria-label="Filtr kategorii">
+            <button class="filter is-active" type="button" data-filter="all">
+              Wybrane
+            </button>
+            <button class="filter" type="button" data-filter="reklama">
+              Social
+            </button>
+            <button class="filter" type="button" data-filter="teledysk">
+              Reklamy
+            </button>
+            <button class="filter" type="button" data-filter="event">
+              Teledyski
+            </button>
+            <button class="filter" type="button" data-filter="business">
+              Business
+            </button>
+          </div>
+
+          <ul class="project-grid" id="project-grid"></ul>
+        </div>
+      </section>
+
+      <section class="section section--cta" id="kontakt">
+        <div class="container contact">
+          <span class="section-head__label">Kontakt</span>
+          <ul class="contact__links">
+            <li>
+              <a href="mailto:mihszymaniak@gmail.com">mihszymaniak@gmail.com</a>
+            </li>
+            <li>
+              <a href="tel:+48733341010">+48 733 341 010</a>
+            </li>
+            <li>
+              <a
+                href="https://instagram.com/mih.video"
+                target="_blank"
+                rel="noopener"
+                >@mih.video</a
+              >
+            </li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container site-footer__inner">
+        <p>© <span id="year"></span> MIH</p>
+        <a class="site-footer__top" href="#top">Do góry</a>
+      </div>
+    </footer>
+
+    <dialog class="modal" id="project-modal" aria-labelledby="modal-title">
+      <div class="modal__inner">
+        <button class="modal__close" type="button" data-modal-close aria-label="Zamknij">
+          ×
+        </button>
+        <div class="modal__layout">
+          <div class="modal__media" id="modal-media"></div>
+          <div class="modal__body">
+            <p class="modal__category" id="modal-category"></p>
+            <h2 id="modal-title" class="modal__title"></h2>
+            <p class="modal__desc" id="modal-desc"></p>
+            <p class="modal__meta" id="modal-meta"></p>
+          </div>
+        </div>
+      </div>
+    </dialog>
+
+    <script src="main.js?v=20261004l" defer></script>
+  </body>
+</html>
