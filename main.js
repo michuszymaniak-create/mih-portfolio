@@ -481,11 +481,14 @@ function initHeroHeadlineMotion() {
 
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const wordFill = new Map();
+  const wordFocus = new Map();
 
   words.forEach((word) => {
     const base = Number(word.dataset.baseFill) || 0;
     wordFill.set(word, base);
+    wordFocus.set(word, 0);
     word.style.setProperty("--fill", String(base));
+    word.style.setProperty("--focus", "0");
   });
 
   if (reducedMotion.matches) return;
@@ -540,25 +543,35 @@ function initHeroHeadlineMotion() {
     });
 
     const heroRect = hero.getBoundingClientRect();
-    const influenceRadius = Math.max(heroRect.width, heroRect.height) * 0.24;
+    const heroScale = Math.max(heroRect.width, heroRect.height);
+    const fillRadius = heroScale * 0.24;
+    const focusRadius = heroScale * 0.16;
 
     words.forEach((word) => {
       const base = Number(word.dataset.baseFill) || 0;
       let targetFill = base;
+      let targetFocus = 0;
 
       if (pointerX !== null && pointerY !== null) {
         const rect = word.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
         const distance = Math.hypot(pointerX - centerX, pointerY - centerY);
-        const proximity = 1 - Math.min(distance / influenceRadius, 1);
-        targetFill = smoothstep(proximity);
+        const fillProximity = 1 - Math.min(distance / fillRadius, 1);
+        targetFill = smoothstep(fillProximity);
+        const focusProximity = 1 - Math.min(distance / focusRadius, 1);
+        targetFocus = smoothstep(focusProximity);
       }
 
       const currentFill = wordFill.get(word) ?? base;
       const nextFill = currentFill + (targetFill - currentFill) * 0.14;
       wordFill.set(word, nextFill);
       word.style.setProperty("--fill", nextFill.toFixed(3));
+
+      const currentFocus = wordFocus.get(word) ?? 0;
+      const nextFocus = currentFocus + (targetFocus - currentFocus) * 0.16;
+      wordFocus.set(word, nextFocus);
+      word.style.setProperty("--focus", nextFocus.toFixed(3));
     });
 
     requestAnimationFrame(animate);

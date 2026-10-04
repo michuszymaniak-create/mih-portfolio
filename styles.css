@@ -234,6 +234,7 @@ textarea {
 
 .hero__word {
   --fill: 0;
+  --focus: 0;
   display: inline-block;
   text-transform: uppercase;
   font-weight: 700;
@@ -241,6 +242,9 @@ textarea {
   -webkit-text-stroke: calc((1 - var(--fill)) * 1px)
     rgba(236, 238, 237, 0.92);
   paint-order: stroke fill;
+  filter: blur(calc((1 - var(--focus)) * 7px));
+  opacity: calc(0.55 + var(--focus) * 0.45);
+  will-change: filter, opacity;
 }
 
 .visually-hidden {
@@ -278,10 +282,6 @@ textarea {
   width: max-content;
   will-change: transform;
   animation: hero-logos-marquee 50s linear infinite;
-}
-
-.hero__logos-viewport:hover .hero__logos-track {
-  animation-play-state: paused;
 }
 
 .hero__logos-row {
@@ -561,13 +561,9 @@ textarea {
 
 #o-mnie > .container,
 #realizacje > .container,
-#kontakt > .container {
-  width: var(--container-section);
-  margin-inline: auto;
-}
-
+#kontakt > .container,
 .site-footer > .container {
-  width: var(--container-wide);
+  width: var(--container-section);
   margin-inline: auto;
 }
 
@@ -954,13 +950,18 @@ textarea {
   top: 0.75rem;
   right: 0.75rem;
   z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 2.5rem;
   height: 2.5rem;
-  font-size: 1.5rem;
-  line-height: 1;
+  padding: 0;
   border: 1px solid var(--border);
   border-radius: var(--radius-btn);
   background: var(--bg);
+  font-size: 1.35rem;
+  line-height: 1;
+  font-weight: 300;
   cursor: pointer;
 }
 
@@ -1152,6 +1153,12 @@ textarea {
 
   .hero__display [data-depth] {
     transform: none !important;
+  }
+
+  .hero__word {
+    --focus: 1;
+    filter: none;
+    opacity: 1;
   }
 
   *,
