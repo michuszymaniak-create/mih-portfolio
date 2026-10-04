@@ -1,13 +1,15 @@
 /** Logo partnerów — podmień name lub dodaj logo: "logos/nazwa.svg" */
 const PARTNERS = [
-  { name: "Studio North", logo: "" },
-  { name: "Agora Media", logo: "" },
-  { name: "Frame House", logo: "" },
-  { name: "Kino Polska", logo: "" },
-  { name: "Visual Dept.", logo: "" },
-  { name: "On Set", logo: "" },
-  { name: "Post Lab", logo: "" },
-  { name: "Creative Union", logo: "" },
+  { name: "Bitter", logo: "logos/Bitter.png", id: "bitter" },
+  { name: "DSS", logo: "logos/dss.png", id: "dss" },
+  { name: "Ken", logo: "logos/ken.png", id: "ken" },
+  { name: "Univ", logo: "logos/univ.png", id: "univ" },
+  { name: "Newonce", logo: "logos/newonce.png", id: "newonce" },
+  { name: "Smeg", logo: "logos/smeg.png", id: "smeg" },
+  { name: "Sony", logo: "logos/Sony.png", id: "sony" },
+  { name: "Media", logo: "logos/Media.png", id: "media" },
+  { name: "Matchy", logo: "logos/matchy.png", id: "matchy" },
+  { name: "2115", logo: "logos/2115.png", id: "2115" },
 ];
 
 const PROJECTS = [
@@ -21,7 +23,7 @@ const PROJECTS = [
     description:
       "Relacja wielokamerowa z konferencji — szybki turnaround i wersje pod social media.",
     meta: "3 kamery · Live cut",
-    videoUrl: "",
+    videoUrl: "https://vimeo.com/1232396930?fl=pl&fe=sh",
     format: "reel",
   },
   {
@@ -34,7 +36,7 @@ const PROJECTS = [
     description:
       "Portret twórcy w pracowni. Miękkie światło, 35 mm look, minimalistyczna ścieżka dźwiękowa.",
     meta: "Reżyseria · Światło",
-    videoUrl: "",
+    videoUrl: "https://vimeo.com/1232397206?fl=ip&fe=ec",
     format: "reel",
   },
   {
@@ -46,7 +48,7 @@ const PROJECTS = [
     gradient: "linear-gradient(160deg, #2a2e24, #121410)",
     description: "Kulisy planu — dynamiczny reel 9:16 pod social media.",
     meta: "Reel · Montaż",
-    videoUrl: "",
+    videoUrl: "https://vimeo.com/1232397583?fl=ip&fe=ec",
     format: "reel",
   },
   {
@@ -75,69 +77,165 @@ const PROJECTS = [
     videoUrl: "",
     format: "wide",
   },
-  {
-    id: "reel-color-tease",
-    title: "Color Tease",
-    category: "teledysk",
-    categoryLabel: "Reel",
-    year: "2024",
-    gradient: "linear-gradient(160deg, #1f2430, #0e1018)",
-    description: "Zwiastun koloru i rytmu — pionowy format reels.",
-    meta: "Kolor · Reel",
-    videoUrl: "",
-    format: "reel",
-  },
-  {
-    id: "reel-event-cut",
-    title: "Event Cut",
-    category: "event",
-    categoryLabel: "Reel",
-    year: "2024",
-    gradient: "linear-gradient(160deg, #2c241c, #14100c)",
-    description: "Szybki montaż z eventu — highlighty w pionie.",
-    meta: "Event · Reel",
-    videoUrl: "",
-    format: "reel",
-  },
-  {
-    id: "reel-portrait-light",
-    title: "Portrait Light",
-    category: "reklama",
-    categoryLabel: "Reel",
-    year: "2023",
-    gradient: "linear-gradient(160deg, #262420, #12100e)",
-    description: "Portret światłem dostępnym — krótki reel wizerunkowy.",
-    meta: "Operator · Reel",
-    videoUrl: "",
-    format: "reel",
-  },
-  {
-    id: "midnight-run",
-    title: "Midnight Run",
-    category: "teledysk",
-    categoryLabel: "Teledysk",
-    year: "2024",
-    gradient: "linear-gradient(145deg, #1a1a2e, #0f0f18)",
-    description:
-      "Teledysk nocny w mieście — choreografia kamery i rytm cięć zsynchronizowany z utworem.",
-    meta: "Operator · Postprodukcja",
-    videoUrl: "",
-    format: "wide",
-  },
-  {
-    id: "forge-industrial",
-    title: "Forge Industrial",
-    category: "reklama",
-    categoryLabel: "Reklama",
-    year: "2023",
-    gradient: "linear-gradient(145deg, #2a2218, #14100c)",
-    description:
-      "Film B2B dla producenta maszyn. Kontrast światła przemysłowego i ludzkiej precyzji.",
-    meta: "Produkcja end-to-end",
-    videoUrl: "",
-    format: "wide",
-  },
 ];
+
+/** Zakładka Social — 9 pionowych reelów (3×3) */
+const SOCIAL_REEL_SLOT_COUNT = 9;
+
+function buildSocialReelSlots() {
+  const reels = PROJECTS.filter(
+    (p) => p.category === "reklama" && p.format === "reel"
+  );
+  const slots = [];
+  for (let i = 0; i < SOCIAL_REEL_SLOT_COUNT; i++) {
+    slots.push(
+      reels[i] ?? {
+        id: `social-slot-${String(i + 1).padStart(2, "0")}`,
+        title: `Social ${i + 1}`,
+        category: "reklama",
+        categoryLabel: "Reel",
+        year: "—",
+        gradient: "linear-gradient(160deg, #2a2a28, #121210)",
+        description: "Materiał w przygotowaniu — podmień slot w main.js.",
+        meta: "Reel · 9:16",
+        videoUrl: "",
+        format: "reel",
+      }
+    );
+  }
+  return slots;
+}
+
+const SOCIAL_REEL_SLOTS = buildSocialReelSlots();
+
+/** Zakładka Reklamy — 3 pionowe + 2 poziome */
+function buildReklamySlots() {
+  const inCategory = PROJECTS.filter((p) => p.category === "teledysk");
+  const reels = inCategory.filter((p) => p.format === "reel");
+  const wides = inCategory.filter((p) => p.format === "wide");
+  const slots = [];
+
+  for (let i = 0; i < 3; i++) {
+    slots.push(
+      reels[i] ?? {
+        id: `reklamy-reel-${String(i + 1).padStart(2, "0")}`,
+        title: `Reklama ${i + 1}`,
+        category: "teledysk",
+        categoryLabel: "Reklama",
+        year: "—",
+        gradient: "linear-gradient(160deg, #2c2824, #141210)",
+        description: "Materiał w przygotowaniu — podmień slot w main.js.",
+        meta: "Reel · 9:16",
+        videoUrl: "",
+        format: "reel",
+      }
+    );
+  }
+
+  for (let i = 0; i < 2; i++) {
+    slots.push(
+      wides[i] ?? {
+        id: `reklamy-wide-${String(i + 1).padStart(2, "0")}`,
+        title: `Kampania ${i + 1}`,
+        category: "teledysk",
+        categoryLabel: "Reklama",
+        year: "—",
+        gradient: "linear-gradient(145deg, #322820, #161412)",
+        description: "Materiał w przygotowaniu — podmień slot w main.js.",
+        meta: "16:9 · Reklama",
+        videoUrl: "",
+        format: "wide",
+      }
+    );
+  }
+
+  return slots;
+}
+
+const REKLAMY_SLOTS = buildReklamySlots();
+
+/** Zakładka Teledyski — 4 poziome okna (2×2) */
+function buildTeledyskiSlots() {
+  const wides = PROJECTS.filter(
+    (p) => p.category === "event" && p.format === "wide"
+  );
+  const slots = [];
+  for (let i = 0; i < 4; i++) {
+    slots.push(
+      wides[i] ?? {
+        id: `teledysk-wide-${String(i + 1).padStart(2, "0")}`,
+        title: `Teledysk ${i + 1}`,
+        category: "event",
+        categoryLabel: "Teledysk",
+        year: "—",
+        gradient: "linear-gradient(145deg, #2a2438, #121018)",
+        description: "Materiał w przygotowaniu — podmień slot w main.js.",
+        meta: "16:9 · Teledysk",
+        videoUrl: "",
+        format: "wide",
+      }
+    );
+  }
+  return slots;
+}
+
+const TELEDYSKI_SLOTS = buildTeledyskiSlots();
+
+/** Zakładka Business — 2 poziome (góra) + 3 pionowe (dół) */
+function buildBusinessSlots() {
+  const inCategory = PROJECTS.filter((p) => p.category === "business");
+  const reels = inCategory.filter((p) => p.format === "reel");
+  const wides = inCategory.filter((p) => p.format === "wide");
+  const slots = [];
+
+  for (let i = 0; i < 2; i++) {
+    slots.push(
+      wides[i] ?? {
+        id: `business-wide-${String(i + 1).padStart(2, "0")}`,
+        title: `Business film ${i + 1}`,
+        category: "business",
+        categoryLabel: "Business",
+        year: "—",
+        gradient: "linear-gradient(145deg, #283038, #12161c)",
+        description: "Materiał w przygotowaniu — podmień slot w main.js.",
+        meta: "16:9 · Business",
+        videoUrl: "",
+        format: "wide",
+      }
+    );
+  }
+
+  for (let i = 0; i < 3; i++) {
+    slots.push(
+      reels[i] ?? {
+        id: `business-reel-${String(i + 1).padStart(2, "0")}`,
+        title: `Business ${i + 1}`,
+        category: "business",
+        categoryLabel: "Business",
+        year: "—",
+        gradient: "linear-gradient(160deg, #242830, #101418)",
+        description: "Materiał w przygotowaniu — podmień slot w main.js.",
+        meta: "Reel · 9:16",
+        videoUrl: "",
+        format: "reel",
+      }
+    );
+  }
+
+  return slots;
+}
+
+const BUSINESS_SLOTS = buildBusinessSlots();
+
+function findProject(id) {
+  return (
+    PROJECTS.find((p) => p.id === id) ||
+    SOCIAL_REEL_SLOTS.find((p) => p.id === id) ||
+    REKLAMY_SLOTS.find((p) => p.id === id) ||
+    TELEDYSKI_SLOTS.find((p) => p.id === id) ||
+    BUSINESS_SLOTS.find((p) => p.id === id)
+  );
+}
 
 const grid = document.getElementById("project-grid");
 const modal = document.getElementById("project-modal");
@@ -161,32 +259,66 @@ document.querySelectorAll('a[href="#top"]').forEach((link) => {
   });
 });
 
-function embedHtml(url) {
-  if (!url) {
-    return `<div style="height:100%;display:flex;align-items:center;justify-content:center;color:#9a958c;font-size:0.9rem;padding:1rem;text-align:center">Dodaj <code style="color:#8fa67a">videoUrl</code> w main.js</div>`;
-  }
+function parseVideoUrl(url) {
+  if (!url) return null;
   const yt = url.match(
     /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]+)/
   );
-  if (yt) {
-    return `<iframe src="https://www.youtube.com/embed/${yt[1]}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen title="Wideo"></iframe>`;
+  if (yt) return { type: "youtube", id: yt[1] };
+  const vimeoId = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  if (vimeoId) return { type: "vimeo", id: vimeoId[1] };
+  return { type: "iframe", src: url };
+}
+
+function embedHtml(url) {
+  const parsed = parseVideoUrl(url);
+  if (!parsed) {
+    return `<div style="height:100%;display:flex;align-items:center;justify-content:center;color:#9a958c;font-size:0.9rem;padding:1rem;text-align:center">Dodaj <code style="color:#8fa67a">videoUrl</code> w main.js</div>`;
   }
-  if (url.includes("vimeo.com")) {
-    const vimeoId = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
-    const src = vimeoId
-      ? `https://player.vimeo.com/video/${vimeoId[1]}`
-      : url;
-    return `<iframe src="${src}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="Wideo"></iframe>`;
+  if (parsed.type === "youtube") {
+    return `<iframe src="https://www.youtube.com/embed/${parsed.id}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen title="Wideo"></iframe>`;
   }
-  return `<iframe src="${url}" allowfullscreen title="Wideo"></iframe>`;
+  if (parsed.type === "vimeo") {
+    return `<iframe src="https://player.vimeo.com/video/${parsed.id}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="Wideo"></iframe>`;
+  }
+  return `<iframe src="${parsed.src}" allowfullscreen title="Wideo"></iframe>`;
+}
+
+function cardMediaHtml(url) {
+  const parsed = parseVideoUrl(url);
+  if (!parsed) return "";
+  let src;
+  if (parsed.type === "vimeo") {
+    src = `https://player.vimeo.com/video/${parsed.id}?background=1&autoplay=1&loop=1&muted=1`;
+  } else if (parsed.type === "youtube") {
+    src = `https://www.youtube.com/embed/${parsed.id}?autoplay=1&mute=1&loop=1&playlist=${parsed.id}&controls=0&playsinline=1&rel=0`;
+  } else {
+    src = parsed.src;
+  }
+  return `<div class="project-card__media" aria-hidden="true"><iframe src="${src}" tabindex="-1" title=""></iframe></div>`;
 }
 
 function renderProjects(filter = "all") {
   if (!grid) return;
   grid.innerHTML = "";
-  const items = PROJECTS.filter(
-    (p) => filter === "all" || p.category === filter
-  );
+  const isSocial = filter === "reklama";
+  const isReklamy = filter === "teledysk";
+  const isTeledyski = filter === "event";
+  const isBusiness = filter === "business";
+  grid.classList.toggle("project-grid--social", isSocial);
+  grid.classList.toggle("project-grid--reklamy", isReklamy);
+  grid.classList.toggle("project-grid--business", isBusiness);
+  grid.classList.toggle("project-grid--teledyski", isTeledyski);
+
+  const items = isSocial
+    ? SOCIAL_REEL_SLOTS
+    : isReklamy
+      ? REKLAMY_SLOTS
+      : isTeledyski
+        ? TELEDYSKI_SLOTS
+        : isBusiness
+          ? BUSINESS_SLOTS
+          : PROJECTS.filter((p) => filter === "all" || p.category === filter);
 
   items.forEach((project, index) => {
     const li = document.createElement("li");
@@ -195,10 +327,12 @@ function renderProjects(filter = "all") {
       ? "project-card project-card--reel"
       : "project-card project-card--wide";
     li.dataset.category = project.category;
+    const hasVideo = Boolean(project.videoUrl);
     li.innerHTML = `
       <article>
         <button type="button" class="project-card__button" data-project-id="${project.id}">
-          <div class="project-card__visual" style="--card-gradient: ${project.gradient}">
+          <div class="project-card__visual${hasVideo ? " project-card__visual--has-video" : ""}" style="--card-gradient: ${project.gradient}">
+            ${hasVideo ? cardMediaHtml(project.videoUrl) : ""}
             <div class="project-card__overlay">
               <span class="project-card__play">Otwórz</span>
             </div>
@@ -217,7 +351,7 @@ function renderProjects(filter = "all") {
 }
 
 function openProject(id) {
-  const project = PROJECTS.find((p) => p.id === id);
+  const project = findProject(id);
   if (!project || !modal) return;
   modal.classList.toggle("modal--wide", project.format === "wide");
   modal.classList.toggle("modal--reel", project.format !== "wide");
@@ -275,20 +409,21 @@ function easeOutCubic(t) {
 }
 
 function animateCount(el, target, duration = 1400) {
+  const prefix = el.dataset.countPrefix || "";
   const reducedMotion = window.matchMedia(
     "(prefers-reduced-motion: reduce)"
   ).matches;
   if (reducedMotion || !target) {
-    el.textContent = String(target);
+    el.textContent = `${prefix}${target}`;
     return;
   }
 
   const start = performance.now();
   const tick = (now) => {
     const progress = Math.min((now - start) / duration, 1);
-    el.textContent = String(Math.round(target * easeOutCubic(progress)));
+    el.textContent = `${prefix}${Math.round(target * easeOutCubic(progress))}`;
     if (progress < 1) requestAnimationFrame(tick);
-    else el.textContent = String(target);
+    else el.textContent = `${prefix}${target}`;
   };
   requestAnimationFrame(tick);
 }
@@ -320,12 +455,14 @@ if (statsBlock) {
 function renderPartnerLogos() {
   const track = document.getElementById("hero-logos-track");
   if (!track || PARTNERS.length === 0) return;
+  if (track.querySelector(".hero__logo-img")) return;
 
   const items = PARTNERS.map((partner) => {
+    const idAttr = partner.id ? ` data-logo="${partner.id}"` : "";
     if (partner.logo) {
-      return `<li class="hero__logo-item"><img src="${partner.logo}" alt="${partner.name}" width="120" height="32" loading="lazy" decoding="async" /></li>`;
+      return `<li class="hero__logo-item"${idAttr}><img class="hero__logo-img" src="${partner.logo}" alt="${partner.name}" width="160" height="40" loading="lazy" decoding="async" /></li>`;
     }
-    return `<li class="hero__logo-item"><span>${partner.name}</span></li>`;
+    return `<li class="hero__logo-item"${idAttr}><span>${partner.name}</span></li>`;
   }).join("");
 
   const row = `<ul class="hero__logos-row">${items}</ul>`;
