@@ -13,6 +13,7 @@
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --container: min(1120px, 92vw);
   --container-wide: min(960px, 86vw);
+  --container-section: min(1100px, 92vw);
   --radius-btn: 9999px;
 }
 
@@ -560,7 +561,11 @@ textarea {
 
 #o-mnie > .container,
 #realizacje > .container,
-#kontakt > .container,
+#kontakt > .container {
+  width: var(--container-section);
+  margin-inline: auto;
+}
+
 .site-footer > .container {
   width: var(--container-wide);
   margin-inline: auto;
