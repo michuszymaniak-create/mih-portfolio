@@ -554,6 +554,7 @@ function initHeroHeadlineMotion() {
   if (!hero || layers.length === 0) return;
 
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const mobileHero = window.matchMedia("(max-width: 720px)");
   const wordFill = new Map();
   const wordFocus = new Map();
 
@@ -567,49 +568,136 @@ function initHeroHeadlineMotion() {
 
   if (reducedMotion.matches) return;
 
-  let targetX = 0;
-  let targetY = 0;
-  let currentX = 0;
-  let currentY = 0;
+  let pointerTargetX = 0;
+  let pointerTargetY = 0;
   let pointerX = null;
   let pointerY = null;
 
-  const setTarget = (clientX, clientY) => {
+  let orientTargetX = 0;
+  let orientTargetY = 0;
+  let orientCurrentX = 0;
+  let orientCurrentY = 0;
+  let orientActive = false;
+  let orientSetupAttempted = false;
+
+  let currentX = 0;
+  let currentY = 0;
+
+  const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+
+  const setPointerTarget = (clientX, clientY) => {
     const rect = hero.getBoundingClientRect();
-    targetX = (clientX - rect.left) / rect.width - 0.5;
-    targetY = (clientY - rect.top) / rect.height - 0.5;
+    pointerTargetX = (clientX - rect.left) / rect.width - 0.5;
+    pointerTargetY = (clientY - rect.top) / rect.height - 0.5;
     pointerX = clientX;
     pointerY = clientY;
   };
 
   const clearPointer = () => {
-    targetX = 0;
-    targetY = 0;
     pointerX = null;
     pointerY = null;
+    pointerTargetX = 0;
+    pointerTargetY = 0;
+  };
+
+  const handleDeviceOrientation = (event) => {
+    const { gamma, beta } = event;
+    if (gamma == null || beta == null) return;
+    const tiltX = clamp(gamma / 26, -1, 1);
+    const tiltY = clamp((beta - 48) / 26, -1, 1);
+    orientTargetX = tiltX * 0.4;
+    orientTargetY = tiltY * 0.3;
+  };
+
+  const setupDeviceOrientation = async () => {
+    if (!mobileHero.matches || orientActive) return;
+    const OrientationEvent = window.DeviceOrientationEvent;
+    if (!OrientationEvent) return;
+
+    if (typeof OrientationEvent.requestPermission === "function") {
+      try {
+        const permission = await OrientationEvent.requestPermission();
+        if (permission !== "granted") return;
+      } catch {
+        return;
+      }
+    }
+
+    window.addEventListener("deviceorientation", handleDeviceOrientation, {
+      passive: true,
+    });
+    orientActive = true;
+  };
+
+  const requestOrientationOnGesture = () => {
+    if (!mobileHero.matches || orientSetupAttempted) return;
+    orientSetupAttempted = true;
+    void setupDeviceOrientation();
   };
 
   hero.addEventListener("mousemove", (event) => {
-    setTarget(event.clientX, event.clientY);
+    setPointerTarget(event.clientX, event.clientY);
   });
 
   hero.addEventListener("mouseleave", clearPointer);
+
+  hero.addEventListener(
+    "touchstart",
+    () => {
+      requestOrientationOnGesture();
+    },
+    { passive: true }
+  );
 
   hero.addEventListener(
     "touchmove",
     (event) => {
       const touch = event.touches[0];
       if (!touch) return;
-      setTarget(touch.clientX, touch.clientY);
+      setPointerTarget(touch.clientX, touch.clientY);
     },
     { passive: true }
   );
 
   hero.addEventListener("touchend", clearPointer);
 
+  const resolveMotionTarget = () => {
+    if (pointerX !== null && pointerY !== null) {
+      return {
+        targetX: pointerTargetX,
+        targetY: pointerTargetY,
+        focusX: pointerX,
+        focusY: pointerY,
+      };
+    }
+
+    if (orientActive) {
+      orientCurrentX += (orientTargetX - orientCurrentX) * 0.06;
+      orientCurrentY += (orientTargetY - orientCurrentY) * 0.06;
+      const rect = hero.getBoundingClientRect();
+      return {
+        targetX: orientCurrentX,
+        targetY: orientCurrentY,
+        focusX: rect.left + rect.width * (0.5 + orientCurrentX),
+        focusY: rect.top + rect.height * (0.5 + orientCurrentY),
+      };
+    }
+
+    orientCurrentX += (0 - orientCurrentX) * 0.06;
+    orientCurrentY += (0 - orientCurrentY) * 0.06;
+
+    return {
+      targetX: 0,
+      targetY: 0,
+      focusX: null,
+      focusY: null,
+    };
+  };
+
   const animate = () => {
-    currentX += (targetX - currentX) * 0.07;
-    currentY += (targetY - currentY) * 0.07;
+    const motion = resolveMotionTarget();
+    currentX += (motion.targetX - currentX) * 0.07;
+    currentY += (motion.targetY - currentY) * 0.07;
 
     layers.forEach((layer) => {
       const depth = Number(layer.dataset.depth) || 12;
@@ -626,11 +714,11 @@ function initHeroHeadlineMotion() {
       let targetFill = base;
       let targetFocus = 0;
 
-      if (pointerX !== null && pointerY !== null) {
+      if (motion.focusX !== null && motion.focusY !== null) {
         const rect = word.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
-        const distance = Math.hypot(pointerX - centerX, pointerY - centerY);
+        const distance = Math.hypot(motion.focusX - centerX, motion.focusY - centerY);
         const fillProximity = 1 - Math.min(distance / fillRadius, 1);
         targetFill = smoothstep(fillProximity);
         const focusProximity = 1 - Math.min(distance / focusRadius, 1);
