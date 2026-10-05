@@ -79,8 +79,19 @@ const PROJECTS = [
   },
 ];
 
-/** Zakładka Social — 9 pionowych reelów (3×3) */
+/** Zakładka Wybrane — 2 reele + 1 poziomy */
+function buildFeaturedProjects() {
+  const reels = PROJECTS.filter((p) => p.format === "reel").slice(0, 2);
+  const wide = PROJECTS.find((p) => p.format === "wide");
+  return wide ? [...reels, wide] : reels;
+}
+
+const FEATURED_PROJECTS = buildFeaturedProjects();
+
+/** Zakładka Social — 9 pionowych reelów (desktop); na mobile 8 */
 const SOCIAL_REEL_SLOT_COUNT = 9;
+const SOCIAL_REEL_SLOT_COUNT_MOBILE = 8;
+const PORTFOLIO_MOBILE_MQ = "(max-width: 720px)";
 
 function buildSocialReelSlots() {
   const reels = PROJECTS.filter(
@@ -108,7 +119,7 @@ function buildSocialReelSlots() {
 
 const SOCIAL_REEL_SLOTS = buildSocialReelSlots();
 
-/** Zakładka Reklamy — 3 pionowe + 2 poziome */
+/** Zakładka Reklamy — 3 pionowe + 2 poziome (desktop); na mobile 2+1 */
 function buildReklamySlots() {
   const inCategory = PROJECTS.filter((p) => p.category === "teledysk");
   const reels = inCategory.filter((p) => p.format === "reel");
@@ -154,7 +165,7 @@ function buildReklamySlots() {
 
 const REKLAMY_SLOTS = buildReklamySlots();
 
-/** Zakładka Teledyski — 4 poziome okna (2×2) */
+/** Zakładka Teledyski — 4 poziome (desktop); na mobile 3 */
 function buildTeledyskiSlots() {
   const wides = PROJECTS.filter(
     (p) => p.category === "event" && p.format === "wide"
@@ -181,7 +192,7 @@ function buildTeledyskiSlots() {
 
 const TELEDYSKI_SLOTS = buildTeledyskiSlots();
 
-/** Zakładka Business — 2 poziome (góra) + 3 pionowe (dół) */
+/** Zakładka Business — 2 poziome + 3 pionowe (desktop); na mobile 1+2 */
 function buildBusinessSlots() {
   const inCategory = PROJECTS.filter((p) => p.category === "business");
   const reels = inCategory.filter((p) => p.format === "reel");
@@ -226,6 +237,51 @@ function buildBusinessSlots() {
 }
 
 const BUSINESS_SLOTS = buildBusinessSlots();
+
+function isPortfolioMobileView() {
+  return window.matchMedia(PORTFOLIO_MOBILE_MQ).matches;
+}
+
+function portfolioItemsForReelsAndOneWide(slots, reelCount) {
+  const reels = slots.filter((p) => p.format === "reel").slice(0, reelCount);
+  const wide = slots.find((p) => p.format === "wide");
+  return wide ? [...reels, wide] : reels;
+}
+
+function portfolioItemsForOneWideAndReels(slots, reelCount) {
+  const wide = slots.find((p) => p.format === "wide");
+  const reels = slots.filter((p) => p.format === "reel").slice(0, reelCount);
+  return wide ? [wide, ...reels] : reels;
+}
+
+function getPortfolioItems(filter) {
+  const mobile = isPortfolioMobileView();
+
+  if (filter === "all") {
+    return mobile ? FEATURED_PROJECTS : PROJECTS;
+  }
+  if (filter === "reklama") {
+    return mobile
+      ? SOCIAL_REEL_SLOTS.slice(0, SOCIAL_REEL_SLOT_COUNT_MOBILE)
+      : SOCIAL_REEL_SLOTS;
+  }
+  if (filter === "teledysk") {
+    return mobile
+      ? portfolioItemsForReelsAndOneWide(REKLAMY_SLOTS, 2)
+      : REKLAMY_SLOTS;
+  }
+  if (filter === "event") {
+    return mobile ? TELEDYSKI_SLOTS.slice(0, 3) : TELEDYSKI_SLOTS;
+  }
+  if (filter === "business") {
+    return mobile
+      ? portfolioItemsForOneWideAndReels(BUSINESS_SLOTS, 2)
+      : BUSINESS_SLOTS;
+  }
+  return PROJECTS.filter((p) => p.category === filter);
+}
+
+let activePortfolioFilter = "all";
 
 function findProject(id) {
   return (
@@ -305,20 +361,15 @@ function renderProjects(filter = "all") {
   const isReklamy = filter === "teledysk";
   const isTeledyski = filter === "event";
   const isBusiness = filter === "business";
+  const isFeatured = filter === "all";
+  grid.classList.toggle("project-grid--featured", isFeatured);
   grid.classList.toggle("project-grid--social", isSocial);
   grid.classList.toggle("project-grid--reklamy", isReklamy);
   grid.classList.toggle("project-grid--business", isBusiness);
   grid.classList.toggle("project-grid--teledyski", isTeledyski);
 
-  const items = isSocial
-    ? SOCIAL_REEL_SLOTS
-    : isReklamy
-      ? REKLAMY_SLOTS
-      : isTeledyski
-        ? TELEDYSKI_SLOTS
-        : isBusiness
-          ? BUSINESS_SLOTS
-          : PROJECTS.filter((p) => filter === "all" || p.category === filter);
+  activePortfolioFilter = filter;
+  const items = getPortfolioItems(filter);
 
   items.forEach((project, index) => {
     const li = document.createElement("li");
@@ -363,6 +414,14 @@ function openProject(id) {
   document.getElementById("modal-media").innerHTML = embedHtml(
     project.videoUrl
   );
+  const isMobileModal = window.matchMedia("(max-width: 720px)").matches;
+  if (isMobileModal) {
+    modal.classList.add("modal--fullscreen");
+    document.documentElement.classList.add("is-modal-open");
+  } else {
+    modal.classList.remove("modal--fullscreen");
+    document.documentElement.classList.remove("is-modal-open");
+  }
   modal.showModal();
 }
 
@@ -371,12 +430,23 @@ grid?.addEventListener("click", (e) => {
   if (btn) openProject(btn.dataset.projectId);
 });
 
+function closeProjectModal() {
+  modal?.classList.remove("modal--fullscreen");
+  document.documentElement.classList.remove("is-modal-open");
+  modal?.close();
+}
+
 document.querySelectorAll("[data-modal-close]").forEach((el) => {
-  el.addEventListener("click", () => modal?.close());
+  el.addEventListener("click", () => closeProjectModal());
+});
+
+modal?.addEventListener("close", () => {
+  modal.classList.remove("modal--fullscreen");
+  document.documentElement.classList.remove("is-modal-open");
 });
 
 modal?.addEventListener("click", (e) => {
-  if (e.target === modal) modal.close();
+  if (e.target === modal) closeProjectModal();
 });
 
 document.querySelectorAll(".filter").forEach((btn) => {
@@ -388,6 +458,10 @@ document.querySelectorAll(".filter").forEach((btn) => {
     renderProjects(btn.dataset.filter);
   });
 });
+
+window
+  .matchMedia(PORTFOLIO_MOBILE_MQ)
+  .addEventListener("change", () => renderProjects(activePortfolioFilter));
 
 const navToggle = document.querySelector(".nav-toggle");
 const siteNav = document.getElementById("site-nav");
