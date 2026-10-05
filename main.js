@@ -572,18 +572,20 @@ function initHeroHeadlineMotion() {
   let pointerTargetY = 0;
   let pointerX = null;
   let pointerY = null;
-
-  let orientTargetX = 0;
-  let orientTargetY = 0;
-  let orientCurrentX = 0;
-  let orientCurrentY = 0;
-  let orientActive = false;
-  let orientSetupAttempted = false;
-
   let currentX = 0;
   let currentY = 0;
+  let ambientPhase = 0;
+  let heroInView = true;
 
-  const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+  const observer = new IntersectionObserver(
+    ([entry]) => {
+      heroInView = entry.isIntersecting;
+    },
+    { threshold: 0.15 }
+  );
+  observer.observe(hero);
+
+  const isMobileHero = () => mobileHero.matches;
 
   const setPointerTarget = (clientX, clientY) => {
     const rect = hero.getBoundingClientRect();
@@ -600,68 +602,36 @@ function initHeroHeadlineMotion() {
     pointerTargetY = 0;
   };
 
-  const handleDeviceOrientation = (event) => {
-    const { gamma, beta } = event;
-    if (gamma == null || beta == null) return;
-    const tiltX = clamp(gamma / 26, -1, 1);
-    const tiltY = clamp((beta - 48) / 26, -1, 1);
-    orientTargetX = tiltX * 0.4;
-    orientTargetY = tiltY * 0.3;
+  const ambientMotionTarget = () => {
+    if (heroInView) ambientPhase += 0.011;
+    const t = ambientPhase;
+    const targetX =
+      Math.sin(t * 0.95) * 0.36 + Math.sin(t * 1.65 + 0.8) * 0.1;
+    const targetY =
+      Math.cos(t * 0.8) * 0.26 + Math.cos(t * 1.35 + 1.1) * 0.08;
+    const rect = hero.getBoundingClientRect();
+    return {
+      targetX,
+      targetY,
+      focusX: rect.left + rect.width * (0.5 + targetX),
+      focusY: rect.top + rect.height * (0.5 + targetY),
+    };
   };
 
-  const setupDeviceOrientation = async () => {
-    if (!mobileHero.matches || orientActive) return;
-    const OrientationEvent = window.DeviceOrientationEvent;
-    if (!OrientationEvent) return;
-
-    if (typeof OrientationEvent.requestPermission === "function") {
-      try {
-        const permission = await OrientationEvent.requestPermission();
-        if (permission !== "granted") return;
-      } catch {
-        return;
-      }
-    }
-
-    window.addEventListener("deviceorientation", handleDeviceOrientation, {
-      passive: true,
+  if (!isMobileHero()) {
+    hero.addEventListener("mousemove", (event) => {
+      setPointerTarget(event.clientX, event.clientY);
     });
-    orientActive = true;
-  };
+    hero.addEventListener("mouseleave", clearPointer);
+  }
 
-  const requestOrientationOnGesture = () => {
-    if (!mobileHero.matches || orientSetupAttempted) return;
-    orientSetupAttempted = true;
-    void setupDeviceOrientation();
-  };
-
-  hero.addEventListener("mousemove", (event) => {
-    setPointerTarget(event.clientX, event.clientY);
+  mobileHero.addEventListener("change", () => {
+    clearPointer();
   });
 
-  hero.addEventListener("mouseleave", clearPointer);
-
-  hero.addEventListener(
-    "touchstart",
-    () => {
-      requestOrientationOnGesture();
-    },
-    { passive: true }
-  );
-
-  hero.addEventListener(
-    "touchmove",
-    (event) => {
-      const touch = event.touches[0];
-      if (!touch) return;
-      setPointerTarget(touch.clientX, touch.clientY);
-    },
-    { passive: true }
-  );
-
-  hero.addEventListener("touchend", clearPointer);
-
   const resolveMotionTarget = () => {
+    if (isMobileHero()) return ambientMotionTarget();
+
     if (pointerX !== null && pointerY !== null) {
       return {
         targetX: pointerTargetX,
@@ -670,21 +640,6 @@ function initHeroHeadlineMotion() {
         focusY: pointerY,
       };
     }
-
-    if (orientActive) {
-      orientCurrentX += (orientTargetX - orientCurrentX) * 0.06;
-      orientCurrentY += (orientTargetY - orientCurrentY) * 0.06;
-      const rect = hero.getBoundingClientRect();
-      return {
-        targetX: orientCurrentX,
-        targetY: orientCurrentY,
-        focusX: rect.left + rect.width * (0.5 + orientCurrentX),
-        focusY: rect.top + rect.height * (0.5 + orientCurrentY),
-      };
-    }
-
-    orientCurrentX += (0 - orientCurrentX) * 0.06;
-    orientCurrentY += (0 - orientCurrentY) * 0.06;
 
     return {
       targetX: 0,

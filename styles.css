@@ -271,8 +271,8 @@ textarea {
   -webkit-text-stroke: calc((1 - var(--fill)) * 1px)
     rgba(236, 238, 237, 0.92);
   paint-order: stroke fill;
-  filter: blur(calc((1 - var(--focus)) * 7px));
-  opacity: calc(0.55 + var(--focus) * 0.45);
+  filter: blur(calc((1 - var(--focus)) * 5.5px));
+  opacity: calc(0.62 + var(--focus) * 0.38);
   will-change: filter, opacity;
 }
 
