@@ -165,33 +165,6 @@ function buildReklamySlots() {
 
 const REKLAMY_SLOTS = buildReklamySlots();
 
-/** Zakładka Teledyski — 4 poziome (desktop); na mobile 3 */
-function buildTeledyskiSlots() {
-  const wides = PROJECTS.filter(
-    (p) => p.category === "event" && p.format === "wide"
-  );
-  const slots = [];
-  for (let i = 0; i < 4; i++) {
-    slots.push(
-      wides[i] ?? {
-        id: `teledysk-wide-${String(i + 1).padStart(2, "0")}`,
-        title: `Teledysk ${i + 1}`,
-        category: "event",
-        categoryLabel: "Teledysk",
-        year: "—",
-        gradient: "linear-gradient(145deg, #2a2438, #121018)",
-        description: "Materiał w przygotowaniu — podmień slot w main.js.",
-        meta: "16:9 · Teledysk",
-        videoUrl: "",
-        format: "wide",
-      }
-    );
-  }
-  return slots;
-}
-
-const TELEDYSKI_SLOTS = buildTeledyskiSlots();
-
 /** Zakładka Business — 2 poziome + 3 pionowe (desktop); na mobile 1+2 */
 function buildBusinessSlots() {
   const inCategory = PROJECTS.filter((p) => p.category === "business");
@@ -270,9 +243,6 @@ function getPortfolioItems(filter) {
       ? portfolioItemsForReelsAndOneWide(REKLAMY_SLOTS, 2)
       : REKLAMY_SLOTS;
   }
-  if (filter === "event") {
-    return mobile ? TELEDYSKI_SLOTS.slice(0, 3) : TELEDYSKI_SLOTS;
-  }
   if (filter === "business") {
     return mobile
       ? portfolioItemsForOneWideAndReels(BUSINESS_SLOTS, 2)
@@ -288,7 +258,6 @@ function findProject(id) {
     PROJECTS.find((p) => p.id === id) ||
     SOCIAL_REEL_SLOTS.find((p) => p.id === id) ||
     REKLAMY_SLOTS.find((p) => p.id === id) ||
-    TELEDYSKI_SLOTS.find((p) => p.id === id) ||
     BUSINESS_SLOTS.find((p) => p.id === id)
   );
 }
@@ -296,6 +265,25 @@ function findProject(id) {
 const grid = document.getElementById("project-grid");
 const modal = document.getElementById("project-modal");
 const yearEl = document.getElementById("year");
+let savedModalScrollY = 0;
+
+function restorePageScroll(y = savedModalScrollY) {
+  const root = document.documentElement;
+  const prevBehavior = root.style.scrollBehavior;
+  root.style.scrollBehavior = "auto";
+  window.scrollTo(0, y);
+  root.style.scrollBehavior = prevBehavior;
+}
+
+function lockModalPageScroll() {
+  if (document.documentElement.classList.contains("is-modal-open")) return;
+  document.documentElement.classList.add("is-modal-open");
+}
+
+function unlockModalPageScroll() {
+  if (!document.documentElement.classList.contains("is-modal-open")) return;
+  document.documentElement.classList.remove("is-modal-open");
+}
 
 if (yearEl) yearEl.textContent = String(new Date().getFullYear());
 
@@ -359,14 +347,12 @@ function renderProjects(filter = "all") {
   grid.innerHTML = "";
   const isSocial = filter === "reklama";
   const isReklamy = filter === "teledysk";
-  const isTeledyski = filter === "event";
   const isBusiness = filter === "business";
   const isFeatured = filter === "all";
   grid.classList.toggle("project-grid--featured", isFeatured);
   grid.classList.toggle("project-grid--social", isSocial);
   grid.classList.toggle("project-grid--reklamy", isReklamy);
   grid.classList.toggle("project-grid--business", isBusiness);
-  grid.classList.toggle("project-grid--teledyski", isTeledyski);
 
   activePortfolioFilter = filter;
   const items = getPortfolioItems(filter);
@@ -415,14 +401,15 @@ function openProject(id) {
     project.videoUrl
   );
   const isMobileModal = window.matchMedia("(max-width: 720px)").matches;
-  if (isMobileModal) {
-    modal.classList.add("modal--fullscreen");
-    document.documentElement.classList.add("is-modal-open");
-  } else {
-    modal.classList.remove("modal--fullscreen");
-    document.documentElement.classList.remove("is-modal-open");
-  }
+  modal.classList.toggle("modal--fullscreen", isMobileModal);
+  savedModalScrollY = window.scrollY;
   modal.showModal();
+  if (window.scrollY !== savedModalScrollY) {
+    restorePageScroll();
+    requestAnimationFrame(() => restorePageScroll());
+  }
+  lockModalPageScroll();
+  modal.querySelector(".modal__close")?.focus({ preventScroll: true });
 }
 
 grid?.addEventListener("click", (e) => {
@@ -432,7 +419,6 @@ grid?.addEventListener("click", (e) => {
 
 function closeProjectModal() {
   modal?.classList.remove("modal--fullscreen");
-  document.documentElement.classList.remove("is-modal-open");
   modal?.close();
 }
 
@@ -442,7 +428,7 @@ document.querySelectorAll("[data-modal-close]").forEach((el) => {
 
 modal?.addEventListener("close", () => {
   modal.classList.remove("modal--fullscreen");
-  document.documentElement.classList.remove("is-modal-open");
+  unlockModalPageScroll();
 });
 
 modal?.addEventListener("click", (e) => {
@@ -543,8 +529,87 @@ function renderPartnerLogos() {
   track.innerHTML = `${row}<ul class="hero__logos-row" aria-hidden="true">${items}</ul>`;
 }
 
+function initHeroLogosMarquee() {
+  const track = document.getElementById("hero-logos-track");
+  const viewport = track?.closest(".hero__logos-viewport");
+  if (!track || !viewport) return;
+
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  if (reducedMotion.matches) return;
+
+  const MARQUEE_CYCLE_SEC = 50;
+  let loopWidth = 0;
+  let offset = 0;
+  let lastTime = 0;
+  let rafId = 0;
+
+  const measureLoopWidth = () => {
+    const rows = track.querySelectorAll(".hero__logos-row");
+    const next =
+      rows.length >= 2
+        ? rows[1].offsetLeft
+        : track.scrollWidth > 0
+          ? track.scrollWidth / 2
+          : 0;
+    if (next > 0) {
+      if (loopWidth > 0 && next !== loopWidth) {
+        offset = (offset / loopWidth) * next;
+      }
+      loopWidth = next;
+      offset %= loopWidth;
+    }
+  };
+
+  const tick = (time) => {
+    if (!lastTime) lastTime = time;
+    const dt = Math.min((time - lastTime) / 1000, 0.05);
+    lastTime = time;
+
+    if (loopWidth > 0) {
+      offset += (loopWidth / MARQUEE_CYCLE_SEC) * dt;
+      if (offset >= loopWidth) {
+        offset %= loopWidth;
+      }
+      track.style.transform = `translate3d(${-offset}px, 0, 0)`;
+    }
+
+    rafId = requestAnimationFrame(tick);
+  };
+
+  const start = () => {
+    measureLoopWidth();
+    if (!rafId) {
+      rafId = requestAnimationFrame(tick);
+    }
+  };
+
+  const resizeObserver = new ResizeObserver(() => {
+    measureLoopWidth();
+  });
+  resizeObserver.observe(track);
+  resizeObserver.observe(viewport);
+
+  track.querySelectorAll(".hero__logo-img").forEach((img) => {
+    if (!img.complete) {
+      img.addEventListener("load", measureLoopWidth, { once: true });
+    }
+  });
+
+  if (document.fonts?.ready) {
+    document.fonts.ready.then(measureLoopWidth).catch(() => {});
+  }
+
+  start();
+  window.addEventListener("load", measureLoopWidth, { once: true });
+}
+
 function smoothstep(value) {
   return value * value * (3 - 2 * value);
+}
+
+function smootherstep(value) {
+  const t = Math.max(0, Math.min(1, value));
+  return t * t * t * (t * (t * 6 - 15) + 10);
 }
 
 function initHeroHeadlineMotion() {
@@ -574,8 +639,32 @@ function initHeroHeadlineMotion() {
   let pointerY = null;
   let currentX = 0;
   let currentY = 0;
-  let ambientPhase = 0;
   let heroInView = true;
+  let focusFromIndex = 0;
+  let focusToIndex = 0;
+  let focusSegment = 0;
+  let ambientFocusX = null;
+  let ambientFocusY = null;
+  const FOCUS_SEGMENT_SPEED = 0.0028;
+  const FOCUS_DWELL_RATIO = 0.32;
+
+  const pickRandomWordIndex = (exclude, count) => {
+    if (count <= 1) return 0;
+    let next = exclude;
+    while (next === exclude) {
+      next = Math.floor(Math.random() * count);
+    }
+    return next;
+  };
+
+  const initFocusRoute = () => {
+    const count = words.length;
+    focusFromIndex = Math.floor(Math.random() * count);
+    focusToIndex = pickRandomWordIndex(focusFromIndex, count);
+    focusSegment = 0;
+  };
+
+  initFocusRoute();
 
   const observer = new IntersectionObserver(
     ([entry]) => {
@@ -603,18 +692,45 @@ function initHeroHeadlineMotion() {
   };
 
   const ambientMotionTarget = () => {
-    if (heroInView) ambientPhase += 0.011;
-    const t = ambientPhase;
-    const targetX =
-      Math.sin(t * 0.95) * 0.36 + Math.sin(t * 1.65 + 0.8) * 0.1;
-    const targetY =
-      Math.cos(t * 0.8) * 0.26 + Math.cos(t * 1.35 + 1.1) * 0.08;
     const rect = hero.getBoundingClientRect();
+    const anchors = Array.from(words).map((word) => {
+      const r = word.getBoundingClientRect();
+      return {
+        x: r.left + r.width / 2,
+        y: r.top + r.height / 2,
+      };
+    });
+    const count = Math.max(anchors.length, 1);
+
+    if (heroInView) {
+      focusSegment += FOCUS_SEGMENT_SPEED;
+      if (focusSegment >= 1) {
+        focusSegment = 0;
+        focusFromIndex = focusToIndex;
+        focusToIndex = pickRandomWordIndex(focusFromIndex, count);
+      }
+    }
+
+    const dwellEdge = FOCUS_DWELL_RATIO * 0.5;
+    const moveSpan = Math.max(1 - FOCUS_DWELL_RATIO, 0.001);
+    let travel = 0;
+    if (focusSegment > dwellEdge) {
+      const moveT = Math.min(
+        (focusSegment - dwellEdge) / moveSpan,
+        1
+      );
+      travel = smootherstep(moveT);
+    }
+    const from = anchors[focusFromIndex] ?? anchors[0];
+    const to = anchors[focusToIndex] ?? anchors[0];
+    const focusX = from.x + (to.x - from.x) * travel;
+    const focusY = from.y + (to.y - from.y) * travel;
+
     return {
-      targetX,
-      targetY,
-      focusX: rect.left + rect.width * (0.5 + targetX),
-      focusY: rect.top + rect.height * (0.5 + targetY),
+      targetX: (focusX - rect.left) / rect.width - 0.5,
+      targetY: (focusY - rect.top) / rect.height - 0.5,
+      focusX,
+      focusY,
     };
   };
 
@@ -630,29 +746,45 @@ function initHeroHeadlineMotion() {
   });
 
   const resolveMotionTarget = () => {
-    if (isMobileHero()) return ambientMotionTarget();
-
-    if (pointerX !== null && pointerY !== null) {
+    if (
+      !isMobileHero() &&
+      pointerX !== null &&
+      pointerY !== null
+    ) {
       return {
         targetX: pointerTargetX,
         targetY: pointerTargetY,
         focusX: pointerX,
         focusY: pointerY,
+        ambient: false,
       };
     }
 
-    return {
-      targetX: 0,
-      targetY: 0,
-      focusX: null,
-      focusY: null,
-    };
+    return { ...ambientMotionTarget(), ambient: true };
   };
 
   const animate = () => {
     const motion = resolveMotionTarget();
-    currentX += (motion.targetX - currentX) * 0.07;
-    currentY += (motion.targetY - currentY) * 0.07;
+    const parallaxEase = motion.ambient ? 0.048 : 0.065;
+    currentX += (motion.targetX - currentX) * parallaxEase;
+    currentY += (motion.targetY - currentY) * parallaxEase;
+
+    let focusX = motion.focusX;
+    let focusY = motion.focusY;
+    if (motion.ambient) {
+      if (ambientFocusX === null || ambientFocusY === null) {
+        ambientFocusX = focusX;
+        ambientFocusY = focusY;
+      }
+      const focusEase = 0.042;
+      ambientFocusX += (focusX - ambientFocusX) * focusEase;
+      ambientFocusY += (focusY - ambientFocusY) * focusEase;
+      focusX = ambientFocusX;
+      focusY = ambientFocusY;
+    } else {
+      ambientFocusX = focusX;
+      ambientFocusY = focusY;
+    }
 
     layers.forEach((layer) => {
       const depth = Number(layer.dataset.depth) || 12;
@@ -661,32 +793,62 @@ function initHeroHeadlineMotion() {
 
     const heroRect = hero.getBoundingClientRect();
     const heroScale = Math.max(heroRect.width, heroRect.height);
-    const fillRadius = heroScale * 0.24;
-    const focusRadius = heroScale * 0.16;
+    const fillRadius = heroScale * 0.28;
+    const focusRadius = heroScale * 0.24;
+
+    const wordTargets = [];
 
     words.forEach((word) => {
       const base = Number(word.dataset.baseFill) || 0;
       let targetFill = base;
       let targetFocus = 0;
+      let distance = Infinity;
 
-      if (motion.focusX !== null && motion.focusY !== null) {
+      if (focusX !== null && focusY !== null) {
         const rect = word.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
-        const distance = Math.hypot(motion.focusX - centerX, motion.focusY - centerY);
+        distance = Math.hypot(focusX - centerX, focusY - centerY);
         const fillProximity = 1 - Math.min(distance / fillRadius, 1);
         targetFill = smoothstep(fillProximity);
         const focusProximity = 1 - Math.min(distance / focusRadius, 1);
         targetFocus = smoothstep(focusProximity);
       }
 
+      wordTargets.push({ word, base, targetFill, targetFocus, distance });
+    });
+
+    let peakFocus = 0;
+    let sharpestIndex = 0;
+    let nearestIndex = 0;
+    let nearestDistance = Infinity;
+    wordTargets.forEach((entry, index) => {
+      if (entry.targetFocus > peakFocus) {
+        peakFocus = entry.targetFocus;
+        sharpestIndex = index;
+      }
+      if (entry.distance < nearestDistance) {
+        nearestDistance = entry.distance;
+        nearestIndex = index;
+      }
+    });
+    const focusFloor = 0.9;
+    if (motion.ambient && peakFocus < focusFloor) {
+      const boostIndex = peakFocus < 0.05 ? nearestIndex : sharpestIndex;
+      const entry = wordTargets[boostIndex];
+      entry.targetFocus = Math.max(entry.targetFocus, focusFloor);
+      entry.targetFill = Math.max(entry.targetFill, entry.targetFill + 0.12);
+    }
+
+    const wordEase = motion.ambient ? 0.065 : 0.1;
+    wordTargets.forEach(({ word, base, targetFill, targetFocus }) => {
       const currentFill = wordFill.get(word) ?? base;
-      const nextFill = currentFill + (targetFill - currentFill) * 0.14;
+      const nextFill = currentFill + (targetFill - currentFill) * wordEase;
       wordFill.set(word, nextFill);
       word.style.setProperty("--fill", nextFill.toFixed(3));
 
       const currentFocus = wordFocus.get(word) ?? 0;
-      const nextFocus = currentFocus + (targetFocus - currentFocus) * 0.16;
+      const nextFocus = currentFocus + (targetFocus - currentFocus) * wordEase;
       wordFocus.set(word, nextFocus);
       word.style.setProperty("--focus", nextFocus.toFixed(3));
     });
@@ -698,5 +860,6 @@ function initHeroHeadlineMotion() {
 }
 
 renderPartnerLogos();
+initHeroLogosMarquee();
 initHeroHeadlineMotion();
 renderProjects();
