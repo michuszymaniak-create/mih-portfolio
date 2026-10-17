@@ -614,6 +614,7 @@ function smootherstep(value) {
 
 function initHeroHeadlineMotion() {
   const hero = document.querySelector(".hero");
+  const heroLogos = hero?.querySelector(".hero__logos");
   const layers = document.querySelectorAll(".hero__display [data-depth]");
   const words = document.querySelectorAll(".hero__word");
   if (!hero || layers.length === 0) return;
@@ -676,8 +677,25 @@ function initHeroHeadlineMotion() {
 
   const isMobileHero = () => mobileHero.matches;
 
+  const isPointerOverHeroLogos = (clientY) => {
+    if (!heroLogos) return false;
+    return clientY >= heroLogos.getBoundingClientRect().top;
+  };
+
+  const heroPointerInteractionRect = () => {
+    const heroRect = hero.getBoundingClientRect();
+    const logosTop = heroLogos?.getBoundingClientRect().top ?? heroRect.bottom;
+    const height = Math.max(logosTop - heroRect.top, 1);
+    return {
+      left: heroRect.left,
+      top: heroRect.top,
+      width: heroRect.width,
+      height,
+    };
+  };
+
   const setPointerTarget = (clientX, clientY) => {
-    const rect = hero.getBoundingClientRect();
+    const rect = heroPointerInteractionRect();
     pointerTargetX = (clientX - rect.left) / rect.width - 0.5;
     pointerTargetY = (clientY - rect.top) / rect.height - 0.5;
     pointerX = clientX;
@@ -736,9 +754,14 @@ function initHeroHeadlineMotion() {
 
   if (!isMobileHero()) {
     hero.addEventListener("mousemove", (event) => {
+      if (isPointerOverHeroLogos(event.clientY)) {
+        clearPointer();
+        return;
+      }
       setPointerTarget(event.clientX, event.clientY);
     });
     hero.addEventListener("mouseleave", clearPointer);
+    heroLogos?.addEventListener("mouseenter", clearPointer);
   }
 
   mobileHero.addEventListener("change", () => {

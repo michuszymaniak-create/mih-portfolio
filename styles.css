@@ -32,6 +32,8 @@
     calc(280px * var(--modal-reel-scale))
   );
   --radius-btn: 9999px;
+  --radius-media: clamp(0.55rem, 1.1vw, 0.85rem);
+  --radius-modal: clamp(0.75rem, 1.5vw, 1.05rem);
 }
 
 *,
@@ -930,6 +932,7 @@ textarea {
   overflow: hidden;
   margin-bottom: 1rem;
   border: 1px solid var(--border);
+  border-radius: var(--radius-media);
   background: var(--bg-card);
 }
 
@@ -1300,21 +1303,40 @@ textarea {
   background: var(--bg-elevated);
   color: var(--text);
   border: 1px solid var(--border);
+  border-radius: var(--radius-modal);
+  overflow: hidden;
 }
 
 .modal:modal {
   position: fixed;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) scale(1);
   margin: 0;
   max-height: 96vh;
   overflow: auto;
+  border-radius: var(--radius-modal);
+  opacity: 1;
+  transition:
+    opacity 0.45s var(--ease-out),
+    transform 0.45s var(--ease-out);
 }
 
 .modal::backdrop {
   background: rgba(0, 0, 0, 0.78);
   backdrop-filter: blur(4px);
+  transition: opacity 0.42s var(--ease-out);
+}
+
+@starting-style {
+  .modal:modal[open] {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.965);
+  }
+
+  .modal:modal[open]::backdrop {
+    opacity: 0;
+  }
 }
 
 .modal--reel {
@@ -1390,6 +1412,7 @@ textarea {
   margin: 0;
   background: #000;
   border: 1px solid var(--border);
+  border-radius: var(--radius-media);
   overflow: hidden;
 }
 
@@ -1554,12 +1577,33 @@ html.is-modal-open body {
     transform: none;
     max-width: 100%;
     max-height: 100%;
+    transition: none;
   }
 
   .modal::backdrop {
     background: rgba(10, 11, 10, 0.9);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
+  }
+
+  .modal--reel .modal__layout,
+  .modal--wide .modal__layout {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 0.45s var(--ease-out),
+      transform 0.45s var(--ease-out);
+  }
+
+  @starting-style {
+    .modal:modal[open] .modal__layout {
+      opacity: 0;
+      transform: scale(0.96) translateY(0.4rem);
+    }
+
+    .modal:modal[open]::backdrop {
+      opacity: 0;
+    }
   }
 
   .modal--reel,
@@ -1643,10 +1687,20 @@ html.is-modal-open body {
     width: var(--modal-mobile-reel-w);
     grid-template-columns: unset;
     gap: 0.65rem;
+    padding: 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-modal);
+    background: var(--bg-elevated);
+    box-sizing: border-box;
   }
 
   .modal--wide .modal__layout {
     width: var(--modal-mobile-wide-w);
+    padding: 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-modal);
+    background: var(--bg-elevated);
+    box-sizing: border-box;
   }
 
   .modal--reel .modal__media {
@@ -1662,7 +1716,7 @@ html.is-modal-open body {
     align-self: center;
     justify-self: unset;
     border: 1px solid var(--border);
-    border-radius: 2px;
+    border-radius: var(--radius-media);
     background: #000;
   }
 
@@ -1689,7 +1743,7 @@ html.is-modal-open body {
     height: auto;
     flex-shrink: 0;
     border: 1px solid var(--border);
-    border-radius: 2px;
+    border-radius: var(--radius-media);
   }
 
   .modal__body {
@@ -1815,6 +1869,12 @@ html.is-modal-open body {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  .modal:modal,
+  .modal::backdrop,
+  .modal__layout {
+    transition: none !important;
   }
 
   .about__stats li {
