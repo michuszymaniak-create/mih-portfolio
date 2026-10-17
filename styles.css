@@ -14,8 +14,10 @@
   --container: min(1120px, 92vw);
   --container-wide: min(960px, 86vw);
   --container-section: min(1180px, 94vw);
+  --container-section-tight: min(1062px, 85vw);
   --section-mobile-padding: 1.125rem;
   --modal-size: min(1320px, 97vw);
+  --modal-wide-size: min(940px, 84vw);
   --modal-panel-height: min(76vh, 740px);
   --modal-reel-scale: 1.5;
   --modal-reel-type-scale: 1.08;
@@ -709,7 +711,7 @@ textarea {
 #kontakt,
 .site-footer {
   display: grid;
-  grid-template-columns: 1fr var(--container-section) 1fr;
+  grid-template-columns: 1fr var(--container-section-tight) 1fr;
 }
 
 #o-mnie > .container,
@@ -732,11 +734,33 @@ textarea {
 }
 
 #realizacje .project-grid {
-  gap: clamp(1.35rem, 2.2vw, 2.25rem);
+  gap: clamp(1.2rem, 2vw, 2rem);
 }
 
 #realizacje .project-card__visual {
-  margin-bottom: 1.35rem;
+  margin-bottom: 1.2rem;
+}
+
+#realizacje .section-head__title {
+  font-size: clamp(1.34rem, 2.68vw, 1.73rem);
+}
+
+#realizacje .project-card__title {
+  font-size: 0.956rem;
+}
+
+@media (min-width: 721px) {
+  #realizacje .project-card__category {
+    font-size: 0.585rem;
+  }
+
+  #realizacje .project-card__year {
+    font-size: 0.765rem;
+  }
+
+  #o-mnie .section-head__title {
+    font-size: clamp(1.58rem, 3.15vw, 2.03rem);
+  }
 }
 
 /* Projects */
@@ -855,7 +879,7 @@ textarea {
   }
 
   #realizacje .section-head__title {
-    font-size: 1.35rem;
+    font-size: 1.15rem;
   }
 
   #realizacje .section-head__label {
@@ -1044,7 +1068,7 @@ textarea {
   }
 
   #realizacje .project-card__title {
-    font-size: 0.62rem;
+    font-size: 0.53rem;
     margin-bottom: 0.06rem;
     line-height: 1.2;
   }
@@ -1063,8 +1087,8 @@ textarea {
 /* About */
 .about {
   display: grid;
-  grid-template-columns: minmax(0, 380px) minmax(0, 36rem);
-  gap: clamp(2rem, 5vw, 4rem);
+  grid-template-columns: minmax(0, 342px) minmax(0, 32.4rem);
+  gap: clamp(1.8rem, 4.5vw, 3.6rem);
   align-items: center;
   width: fit-content;
   max-width: 100%;
@@ -1078,7 +1102,7 @@ textarea {
 
 .about__frame {
   aspect-ratio: 3 / 4;
-  max-width: 380px;
+  max-width: 342px;
   width: 100%;
   margin-inline: 0;
   border: 1px solid var(--border);
@@ -1381,14 +1405,18 @@ textarea {
   );
 }
 
+.modal--wide {
+  width: var(--modal-wide-size);
+}
+
 .modal--wide .modal__layout {
   display: grid;
   grid-template-rows: auto auto;
   align-content: start;
   height: auto;
   min-height: 0;
-  max-height: calc(92vh - 5rem);
-  overflow-y: auto;
+  max-height: calc(88vh - 4rem);
+  overflow-y: visible;
 }
 
 .modal__close {
@@ -1501,10 +1529,10 @@ textarea {
 }
 
 .modal--wide .modal__body {
-  padding: clamp(0.75rem, 1.5vw, 1.25rem) 0 0;
+  padding: clamp(0.65rem, 1.2vw, 1rem) 0 0;
   justify-content: flex-start;
-  overflow: auto;
-  max-height: min(28vh, 220px);
+  overflow: visible;
+  max-height: none;
 }
 
 .modal__category {
@@ -1553,6 +1581,15 @@ html.is-modal-open body {
 
 /* Mobile: fullscreen project viewer (reel + wide) */
 @media (max-width: 720px) {
+  html.is-modal-open {
+    overflow: hidden;
+    height: 100%;
+    overscroll-behavior: none;
+  }
+
+  html.is-modal-open body {
+    overscroll-behavior: none;
+  }
   :root {
     --modal-panel-height: auto;
     --modal-mobile-reel-w: min(82vw, 18.75rem);
@@ -1665,10 +1702,8 @@ html.is-modal-open body {
     margin: 0 auto;
     gap: 0.65rem;
     min-height: 0;
-    overflow-x: hidden;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
+    overflow: hidden;
+    overscroll-behavior: none;
   }
 
   .modal--reel .modal__layout,

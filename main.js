@@ -266,6 +266,12 @@ const grid = document.getElementById("project-grid");
 const modal = document.getElementById("project-modal");
 const yearEl = document.getElementById("year");
 let savedModalScrollY = 0;
+const MODAL_MOBILE_MQ = "(max-width: 720px)";
+let modalScrollTouchBlock = null;
+
+function isModalMobileViewport() {
+  return window.matchMedia(MODAL_MOBILE_MQ).matches;
+}
 
 function restorePageScroll(y = savedModalScrollY) {
   const root = document.documentElement;
@@ -278,11 +284,44 @@ function restorePageScroll(y = savedModalScrollY) {
 function lockModalPageScroll() {
   if (document.documentElement.classList.contains("is-modal-open")) return;
   document.documentElement.classList.add("is-modal-open");
+
+  if (!isModalMobileViewport()) return;
+
+  document.body.style.position = "fixed";
+  document.body.style.top = `-${savedModalScrollY}px`;
+  document.body.style.left = "0";
+  document.body.style.right = "0";
+  document.body.style.width = "100%";
+
+  if (!modalScrollTouchBlock) {
+    modalScrollTouchBlock = (event) => {
+      if (!modal?.open) return;
+      event.preventDefault();
+    };
+  }
+  document.addEventListener("touchmove", modalScrollTouchBlock, {
+    passive: false,
+  });
 }
 
 function unlockModalPageScroll() {
   if (!document.documentElement.classList.contains("is-modal-open")) return;
+  const y = savedModalScrollY;
   document.documentElement.classList.remove("is-modal-open");
+
+  if (modalScrollTouchBlock) {
+    document.removeEventListener("touchmove", modalScrollTouchBlock);
+  }
+
+  document.body.style.position = "";
+  document.body.style.top = "";
+  document.body.style.left = "";
+  document.body.style.right = "";
+  document.body.style.width = "";
+
+  if (isModalMobileViewport()) {
+    restorePageScroll(y);
+  }
 }
 
 if (yearEl) yearEl.textContent = String(new Date().getFullYear());
