@@ -644,9 +644,10 @@ function initHeroHeadlineMotion() {
   let focusFromIndex = 0;
   let focusToIndex = 0;
   let focusSegment = 0;
+  let focusIntroComplete = false;
   let ambientFocusX = null;
   let ambientFocusY = null;
-  const FOCUS_SEGMENT_SPEED = 0.0028;
+  const FOCUS_SEGMENT_SPEED = 0.0035;
   const FOCUS_DWELL_RATIO = 0.32;
 
   const pickRandomWordIndex = (exclude, count) => {
@@ -658,11 +659,26 @@ function initHeroHeadlineMotion() {
     return next;
   };
 
+  const advanceFocusRoute = (count) => {
+    focusFromIndex = focusToIndex;
+    if (!focusIntroComplete) {
+      if (focusToIndex < count - 1) {
+        focusToIndex = focusFromIndex + 1;
+      } else {
+        focusIntroComplete = true;
+        focusToIndex = pickRandomWordIndex(focusFromIndex, count);
+      }
+    } else {
+      focusToIndex = pickRandomWordIndex(focusFromIndex, count);
+    }
+  };
+
   const initFocusRoute = () => {
     const count = words.length;
-    focusFromIndex = Math.floor(Math.random() * count);
-    focusToIndex = pickRandomWordIndex(focusFromIndex, count);
+    focusFromIndex = 0;
+    focusToIndex = count > 1 ? 1 : 0;
     focusSegment = 0;
+    focusIntroComplete = count <= 1;
   };
 
   initFocusRoute();
@@ -674,8 +690,6 @@ function initHeroHeadlineMotion() {
     { threshold: 0.15 }
   );
   observer.observe(hero);
-
-  const isMobileHero = () => mobileHero.matches;
 
   const isPointerOverHeroLogos = (clientY) => {
     if (!heroLogos) return false;
@@ -724,8 +738,7 @@ function initHeroHeadlineMotion() {
       focusSegment += FOCUS_SEGMENT_SPEED;
       if (focusSegment >= 1) {
         focusSegment = 0;
-        focusFromIndex = focusToIndex;
-        focusToIndex = pickRandomWordIndex(focusFromIndex, count);
+        advanceFocusRoute(count);
       }
     }
 
@@ -752,28 +765,81 @@ function initHeroHeadlineMotion() {
     };
   };
 
-  if (!isMobileHero()) {
-    hero.addEventListener("mousemove", (event) => {
+  let touchGestureActive = false;
+  let touchAnchorX = 0;
+  let touchAnchorY = 0;
+
+  const shouldBeginTouchInteraction = (clientX, clientY) => {
+    const dx = Math.abs(clientX - touchAnchorX);
+    const dy = Math.abs(clientY - touchAnchorY);
+    if (dy > 10 && dy > dx * 1.35) return false;
+    return dx > 2 || dy > 2;
+  };
+
+  hero.addEventListener("pointerdown", (event) => {
+    if (isPointerOverHeroLogos(event.clientY)) return;
+    if (event.pointerType === "touch" || event.pointerType === "pen") {
+      touchGestureActive = false;
+      touchAnchorX = event.clientX;
+      touchAnchorY = event.clientY;
+      return;
+    }
+    if (event.pointerType === "mouse") {
+      setPointerTarget(event.clientX, event.clientY);
+    }
+  });
+
+  hero.addEventListener(
+    "pointermove",
+    (event) => {
       if (isPointerOverHeroLogos(event.clientY)) {
+        touchGestureActive = false;
         clearPointer();
         return;
       }
-      setPointerTarget(event.clientX, event.clientY);
-    });
-    hero.addEventListener("mouseleave", clearPointer);
-    heroLogos?.addEventListener("mouseenter", clearPointer);
-  }
+      if (event.pointerType === "mouse") {
+        setPointerTarget(event.clientX, event.clientY);
+        return;
+      }
+      if (event.pointerType === "touch" || event.pointerType === "pen") {
+        if (!touchGestureActive) {
+          if (!shouldBeginTouchInteraction(event.clientX, event.clientY)) {
+            return;
+          }
+          touchGestureActive = true;
+        }
+        setPointerTarget(event.clientX, event.clientY);
+        event.preventDefault();
+      }
+    },
+    { passive: false }
+  );
+
+  hero.addEventListener("pointerup", (event) => {
+    if (event.pointerType === "touch" || event.pointerType === "pen") {
+      touchGestureActive = false;
+      clearPointer();
+    }
+  });
+
+  hero.addEventListener("pointercancel", () => {
+    touchGestureActive = false;
+    clearPointer();
+  });
+
+  hero.addEventListener("mouseleave", () => {
+    clearPointer();
+  });
+
+  heroLogos?.addEventListener("pointerenter", clearPointer);
 
   mobileHero.addEventListener("change", () => {
+    touchGestureActive = false;
     clearPointer();
   });
 
   const resolveMotionTarget = () => {
-    if (
-      !isMobileHero() &&
-      pointerX !== null &&
-      pointerY !== null
-    ) {
+    if (pointerX !== null && pointerY !== null) {
       return {
         targetX: pointerTargetX,
         targetY: pointerTargetY,

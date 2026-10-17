@@ -458,6 +458,10 @@ textarea {
 }
 
 @media (max-width: 720px) {
+  .hero {
+    touch-action: pan-y;
+  }
+
   .hero__display {
     --hero-headline-scale: 1.26;
     inset: var(--header-h) 0 calc(3.35rem + env(safe-area-inset-bottom, 0px));
